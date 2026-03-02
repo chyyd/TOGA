@@ -38,3 +38,8 @@ Thumbs.db
 
 # Project specific
 *.pdf
+
+# PyInstaller
+build/
+dist/
+*.spec

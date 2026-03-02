@@ -3,14 +3,23 @@
 
 import json
 import os
+import sys
+
+def get_base_dir():
+    """获取基础目录，兼容PyInstaller打包"""
+    if getattr(sys, 'frozen', False):
+        # PyInstaller打包后的路径
+        return sys._MEIPASS
+    else:
+        # 开发环境路径
+        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class ConfigManager:
     """管理治疗配置数据"""
     
     def __init__(self, config_path=None):
         if config_path is None:
-            # 获取模块所在目录
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            base_dir = get_base_dir()
             config_path = os.path.join(base_dir, 'data', 'treatment_config.json')
         self.config_path = config_path
         self.config = self._load_config()
