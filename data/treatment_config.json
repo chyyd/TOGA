@@ -1,5 +1,5 @@
 {
-  "hospital_name": "",
+  "hospital_name": "虎林市中医医院",
   "title": "治疗记录单",
   "treatments": [
     {
@@ -8,8 +8,8 @@
       "diagnoses": [
         {
           "id": "d1",
-          "name": "腰椎间盘突出症",
-          "details": "取穴：肾俞、大肠俞、环跳、委中、阳陵泉、承山等，留针30分钟"
+          "name": "脑卒中急性期",
+          "details": ""
         },
         {
           "id": "d2",

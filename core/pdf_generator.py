@@ -136,10 +136,10 @@ class PDFGenerator:
         # 表格顶部y坐标
         table_top = y_start
         
-        # 表格列定义
-        headers = ['日期', '时间', '操作者', '签字']
-        col_widths = [actual_col_width * 0.3, actual_col_width * 0.25, 
-                      actual_col_width * 0.2, actual_col_width * 0.25]
+        # 表格列定义 - 日期列缩小，其他列增大方便手写
+        headers = ['日  期', '时  间', '操作者', '患者签字']
+        col_widths = [actual_col_width * 0.18, actual_col_width * 0.28, 
+                      actual_col_width * 0.27, actual_col_width * 0.27]
         
         # 绘制3列表格
         for col in range(3):
