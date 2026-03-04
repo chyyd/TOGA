@@ -189,16 +189,11 @@ class MainWindow(QMainWindow):
         
         layout.addStretch()
         
-        # 预览PDF按钮
-        preview_btn = QPushButton('预览PDF')
+        # 预览按钮
+        preview_btn = QPushButton('预览')
         preview_btn.clicked.connect(self._preview_pdf)
+        preview_btn.setDefault(True)
         layout.addWidget(preview_btn)
-        
-        # 生成并保存按钮
-        generate_btn = QPushButton('生成并保存')
-        generate_btn.clicked.connect(self._generate_pdf)
-        generate_btn.setDefault(True)
-        layout.addWidget(generate_btn)
         
         return layout
     
@@ -334,46 +329,6 @@ class MainWindow(QMainWindow):
             
             # 打开PDF文件
             os.startfile(temp_path)
-            
-        except Exception as e:
-            QMessageBox.critical(self, '错误', f'生成PDF失败：{str(e)}')
-    
-    def _generate_pdf(self):
-        """生成并保存PDF"""
-        if not self._validate_input():
-            return
-        
-        # 选择保存路径
-        default_name = f"治疗记录单_{self.name_edit.text()}_{self.date_edit.date().toString('yyyyMMdd')}.pdf"
-        file_path, _ = QFileDialog.getSaveFileName(
-            self, '保存PDF', default_name, 'PDF文件 (*.pdf)'
-        )
-        
-        if not file_path:
-            return
-        
-        try:
-            data = self._get_form_data()
-            self.pdf_generator.generate(
-                data['patient_name'],
-                data['hospital_no'],
-                data['diagnosis_name'],
-                data['treatment_name'],
-                data['treatment_details'],
-                data['start_date'],
-                file_path,
-                data['hospital_name'],
-                data['surcharge_info']
-            )
-            
-            reply = QMessageBox.question(
-                self, '成功', 
-                f'PDF已保存到：\n{file_path}\n\n是否打开文件？',
-                QMessageBox.Yes | QMessageBox.No
-            )
-            
-            if reply == QMessageBox.Yes:
-                os.startfile(file_path)
             
         except Exception as e:
             QMessageBox.critical(self, '错误', f'生成PDF失败：{str(e)}')
