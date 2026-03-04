@@ -172,3 +172,22 @@ class ConfigManager:
                 d for d in treatment.get('diagnoses', []) if d['id'] != diagnosis_id
             ]
             self.save_config()
+    
+    def get_surcharges(self):
+        """获取所有加收配置"""
+        return self.config.get('surcharges', [])
+    
+    def get_surcharge_titles(self):
+        """获取加收职称列表"""
+        return [s['title'] for s in self.get_surcharges()]
+    
+    def get_surcharge_by_title(self, title):
+        """根据职称获取加收项目"""
+        for surcharge in self.get_surcharges():
+            if surcharge['title'] == title:
+                return surcharge
+        return None
+    
+    def is_acupuncture_treatment(self, treatment_name):
+        """判断是否为针灸类治疗项目"""
+        return '针灸' in treatment_name

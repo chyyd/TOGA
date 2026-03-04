@@ -41,7 +41,7 @@ class PDFGenerator:
         self.font_name = 'Helvetica'
     
     def generate(self, patient_name, hospital_no, diagnosis_name, treatment_name,
-                 treatment_details, start_date, output_path, hospital_name=''):
+                 treatment_details, start_date, output_path, hospital_name='', surcharge_info=''):
         """生成PDF"""
         c = canvas.Canvas(output_path, pagesize=A4)
         
@@ -52,8 +52,11 @@ class PDFGenerator:
         # 绘制治疗内容，紧密衔接
         y_after_content = self._draw_treatment_details(c, treatment_details, y_after_header)
         
+        # 绘制加收信息（如果有）
+        y_after_surcharge = self._draw_surcharge(c, surcharge_info, y_after_content)
+        
         # 绘制90天表格
-        self._draw_table(c, start_date, y_after_content - 3*mm)
+        self._draw_table(c, start_date, y_after_surcharge - 3*mm)
         
         c.save()
         return output_path
@@ -116,6 +119,18 @@ class PDFGenerator:
         for i, line in enumerate(lines[:2]):
             c.drawString(15 * mm, y, line)
             y -= 4.5 * mm
+        
+        return y
+    
+    def _draw_surcharge(self, c, surcharge_info, y_start):
+        """绘制加收信息，返回下一个可用的y坐标"""
+        if not surcharge_info:
+            return y_start
+        
+        y = y_start
+        c.setFont(self.font_name, 10)
+        c.drawString(15 * mm, y, f"加收：{surcharge_info}")
+        y -= 4.5 * mm
         
         return y
     

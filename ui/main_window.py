@@ -4,7 +4,7 @@
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QLineEdit, QDateEdit, QComboBox, QTextEdit, QPushButton,
-    QMessageBox, QFileDialog
+    QMessageBox, QFileDialog, QCheckBox, QGroupBox
 )
 from PyQt5.QtCore import Qt, QDate
 from PyQt5.QtGui import QFont
@@ -32,7 +32,7 @@ class MainWindow(QMainWindow):
     def init_ui(self):
         """初始化界面"""
         self.setWindowTitle('治疗记录单生成器')
-        self.setMinimumSize(500, 550)
+        self.setMinimumSize(500, 620)
         
         # 创建中心部件
         central_widget = QWidget()
@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
         
         # 主布局
         main_layout = QVBoxLayout(central_widget)
-        main_layout.setSpacing(15)
+        main_layout.setSpacing(10)
         main_layout.setContentsMargins(20, 20, 20, 20)
         
         # 标题
@@ -60,6 +60,10 @@ class MainWindow(QMainWindow):
         # 治疗内容区
         content_layout = self._create_content_layout()
         main_layout.addLayout(content_layout)
+        
+        # 加收选项区
+        self.surcharge_group = self._create_surcharge_group()
+        main_layout.addWidget(self.surcharge_group)
         
         # 按钮区
         button_layout = self._create_button_layout()
@@ -120,10 +124,58 @@ class MainWindow(QMainWindow):
         
         self.content_text = QTextEdit()
         self.content_text.setPlaceholderText('选择治疗项目和诊断后自动填充，可编辑')
-        self.content_text.setMaximumHeight(120)
+        self.content_text.setMaximumHeight(100)
         layout.addWidget(self.content_text)
         
         return layout
+    
+    def _create_surcharge_group(self):
+        """创建加收选项区域"""
+        group = QGroupBox('加收选项（仅针灸）')
+        layout = QHBoxLayout()
+        
+        # 启用加收录选框
+        self.surcharge_checkbox = QCheckBox('启用加收')
+        self.surcharge_checkbox.stateChanged.connect(self._on_surcharge_changed)
+        layout.addWidget(self.surcharge_checkbox)
+        
+        # 操作医师下拉
+        layout.addWidget(QLabel('操作医师：'))
+        self.doctor_combo = QComboBox()
+        self.doctor_combo.setEnabled(False)
+        self.doctor_combo.setMinimumWidth(120)
+        layout.addWidget(self.doctor_combo)
+        
+        # 加收信息预览
+        self.surcharge_preview = QLabel('')
+        self.surcharge_preview.setStyleSheet('color: #666;')
+        layout.addWidget(self.surcharge_preview)
+        
+        layout.addStretch()
+        group.setLayout(layout)
+        
+        # 初始隐藏
+        group.setVisible(False)
+        
+        return group
+    
+    def _on_surcharge_changed(self, state):
+        """加收录选框状态改变"""
+        self.doctor_combo.setEnabled(state == Qt.Checked)
+        self._update_surcharge_preview()
+    
+    def _update_surcharge_preview(self):
+        """更新加收信息预览"""
+        if self.surcharge_checkbox.isChecked():
+            doctor_title = self.doctor_combo.currentText()
+            surcharge = self.config_manager.get_surcharge_by_title(doctor_title)
+            if surcharge:
+                items_str = '、'.join(surcharge['items'])
+                self.surcharge_preview.setText(f'{doctor_title}{items_str}')
+            else:
+                self.surcharge_preview.setText('')
+        else:
+            self.surcharge_preview.setText('')
     
     def _create_button_layout(self):
         """创建按钮区域"""
@@ -164,7 +216,31 @@ class MainWindow(QMainWindow):
             return
         
         self.current_treatment_id = self.treatment_combo.currentData()
+        treatment_name = self.treatment_combo.currentText()
+        
+        # 判断是否为针灸类治疗，显示/隐藏加收选项
+        is_acupuncture = self.config_manager.is_acupuncture_treatment(treatment_name)
+        self.surcharge_group.setVisible(is_acupuncture)
+        
+        # 如果是针灸类，加载加收职称
+        if is_acupuncture:
+            self._load_surcharge_doctors()
+        
         self._load_diagnoses()
+    
+    def _load_surcharge_doctors(self):
+        """加载加收职称选项"""
+        self.doctor_combo.clear()
+        titles = self.config_manager.get_surcharge_titles()
+        for title in titles:
+            self.doctor_combo.addItem(title)
+        
+        # 默认选中主任医师
+        index = self.doctor_combo.findText('主任医师')
+        if index >= 0:
+            self.doctor_combo.setCurrentIndex(index)
+        
+        self._update_surcharge_preview()
     
     def _load_diagnoses(self):
         """加载诊断列表"""
@@ -213,15 +289,26 @@ class MainWindow(QMainWindow):
     
     def _get_form_data(self):
         """获取表单数据"""
-        return {
+        data = {
             'patient_name': self.name_edit.text().strip(),
             'hospital_no': self.hospital_no_edit.text().strip(),
             'treatment_name': self.treatment_combo.currentText(),
             'diagnosis_name': self.diagnosis_combo.currentText(),
             'treatment_details': self.content_text.toPlainText(),
             'start_date': self.date_edit.date().toPyDate(),
-            'hospital_name': self.config_manager.get_hospital_name()
+            'hospital_name': self.config_manager.get_hospital_name(),
+            'surcharge_info': ''
         }
+        
+        # 加收信息
+        if self.surcharge_checkbox.isChecked() and self.surcharge_group.isVisible():
+            doctor_title = self.doctor_combo.currentText()
+            surcharge = self.config_manager.get_surcharge_by_title(doctor_title)
+            if surcharge:
+                items_str = '、'.join(surcharge['items'])
+                data['surcharge_info'] = f'{doctor_title}{items_str}'
+        
+        return data
     
     def _preview_pdf(self):
         """预览PDF"""
@@ -241,7 +328,8 @@ class MainWindow(QMainWindow):
                 data['treatment_details'],
                 data['start_date'],
                 temp_path,
-                data['hospital_name']
+                data['hospital_name'],
+                data['surcharge_info']
             )
             
             # 打开PDF文件
@@ -274,7 +362,8 @@ class MainWindow(QMainWindow):
                 data['treatment_details'],
                 data['start_date'],
                 file_path,
-                data['hospital_name']
+                data['hospital_name'],
+                data['surcharge_info']
             )
             
             reply = QMessageBox.question(
