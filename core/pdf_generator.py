@@ -101,22 +101,30 @@ class PDFGenerator:
         
         # 处理长文本换行
         max_width = self.page_width - 35 * mm
-        words = "治疗内容：" + treatment_details
         lines = []
-        current_line = ""
         
-        for char in words:
-            test_line = current_line + char
-            if c.stringWidth(test_line, self.font_name, 10) < max_width:
-                current_line = test_line
-            else:
+        # 先按换行符分割段落
+        paragraphs = ("治疗内容：" + treatment_details).split('\n')
+        
+        for para in paragraphs:
+            if not para:
+                continue
+            # 对每个段落进行自动换行
+            current_line = ""
+            for char in para:
+                test_line = current_line + char
+                if c.stringWidth(test_line, self.font_name, 10) < max_width:
+                    current_line = test_line
+                else:
+                    if current_line:
+                        lines.append(current_line)
+                    current_line = char
+            if current_line:
                 lines.append(current_line)
-                current_line = char
-        if current_line:
-            lines.append(current_line)
         
-        # 绘制治疗内容，最多2行
-        for i, line in enumerate(lines[:2]):
+        # 绘制治疗内容，动态调整行数，最多8行
+        max_lines = min(len(lines), 8)
+        for i, line in enumerate(lines[:max_lines]):
             c.drawString(15 * mm, y, line)
             y -= 4.5 * mm
         
@@ -135,7 +143,7 @@ class PDFGenerator:
         return y
     
     def _draw_table(self, c, start_date, y_start):
-        """绘制90天表格（3列×30行）"""
+        """绘制60天表格（3列×20行）"""
         margin_left = 10 * mm
         margin_right = 10 * mm
         
@@ -146,7 +154,7 @@ class PDFGenerator:
         
         # 行高计算
         available_height = y_start - 10 * mm  # 底部留10mm边距
-        row_height = available_height / 31  # 30行数据 + 1行表头
+        row_height = available_height / 21  # 20行数据 + 1行表头
         
         # 表格顶部y坐标
         table_top = y_start
@@ -163,9 +171,9 @@ class PDFGenerator:
             # 绘制表头（占一行）
             self._draw_table_header(c, x, table_top, col_widths, headers, row_height)
             
-            # 绘制30行数据（从第2行开始）
-            start_day = col * 30
-            for row in range(30):
+            # 绘制20行数据（从第2行开始）
+            start_day = col * 20
+            for row in range(20):
                 # 第i行数据的y坐标：表头顶部 - (i+2) * row_height
                 y = table_top - (row + 2) * row_height
                 day_offset = start_day + row
@@ -179,10 +187,10 @@ class PDFGenerator:
                 self._draw_table_row(c, x, y, col_widths, [date_str, '', '', ''], row_height)
             
             # 绘制该列完整边框
-            self._draw_col_outline(c, x, table_top, col_widths, row_height * 31)
+            self._draw_col_outline(c, x, table_top, col_widths, row_height * 21)
         
         # 绘制整体外框线
-        self._draw_table_outline(c, margin_left, table_top, total_width, 31 * row_height)
+        self._draw_table_outline(c, margin_left, table_top, total_width, 21 * row_height)
     
     def _draw_table_header(self, c, x, y, col_widths, headers, row_height):
         """绘制表头行"""
