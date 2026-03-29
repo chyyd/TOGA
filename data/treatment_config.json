@@ -25,6 +25,7 @@
     {
       "id": "t1",
       "name": "针灸",
+      "duration": "30分钟",
       "diagnoses": [
         {
           "id": "d1",
@@ -51,6 +52,7 @@
     {
       "id": "t2",
       "name": "针灸+红外线治疗",
+      "duration": "30分钟",
       "diagnoses": [
         {
           "id": "d1",
@@ -77,6 +79,7 @@
     {
       "id": "t4",
       "name": "中频电疗",
+      "duration": "20分钟",
       "diagnoses": [
         {
           "id": "d1",
@@ -98,6 +101,7 @@
     {
       "id": "t5",
       "name": "康复训练",
+      "duration": "30分钟",
       "diagnoses": [
         {
           "id": "d1",

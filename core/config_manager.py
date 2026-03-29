@@ -71,6 +71,13 @@ class ConfigManager:
         """获取所有治疗项目名称列表"""
         return [t['name'] for t in self.get_treatments()]
     
+    def get_treatment_duration(self, treatment_id):
+        """获取治疗项目时长"""
+        treatment = self.get_treatment_by_id(treatment_id)
+        if treatment:
+            return treatment.get('duration', '')
+        return ''
+    
     def get_diagnoses_by_treatment(self, treatment_id):
         """根据治疗项目ID获取诊断列表"""
         treatment = self.get_treatment_by_id(treatment_id)
@@ -86,7 +93,7 @@ class ConfigManager:
                 return diag.get('details', '')
         return ''
     
-    def add_treatment(self, name):
+    def add_treatment(self, name, duration=''):
         """添加治疗项目"""
         treatments = self.get_treatments()
         # 生成新ID
@@ -103,17 +110,19 @@ class ConfigManager:
         new_treatment = {
             'id': new_id,
             'name': name,
+            'duration': duration,
             'diagnoses': []
         }
         self.config['treatments'].append(new_treatment)
         self.save_config()
         return new_treatment
     
-    def update_treatment(self, treatment_id, name):
-        """更新治疗项目名称"""
+    def update_treatment(self, treatment_id, name, duration=''):
+        """更新治疗项目名称和时长"""
         for treatment in self.config['treatments']:
             if treatment['id'] == treatment_id:
                 treatment['name'] = name
+                treatment['duration'] = duration
                 self.save_config()
                 return True
         return False

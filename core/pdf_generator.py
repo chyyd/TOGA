@@ -41,13 +41,14 @@ class PDFGenerator:
         self.font_name = 'Helvetica'
     
     def generate(self, patient_name, hospital_no, diagnosis_name, treatment_name,
-                 treatment_details, start_date, output_path, hospital_name='', surcharge_info=''):
+                 treatment_details, start_date, output_path, hospital_name='', 
+                 surcharge_info='', duration=''):
         """生成PDF"""
         c = canvas.Canvas(output_path, pagesize=A4)
         
         # 绘制标题，返回下一个可用的y坐标
         y_after_header = self._draw_header(c, hospital_name, patient_name, hospital_no, 
-                          diagnosis_name, treatment_name, start_date)
+                          diagnosis_name, treatment_name, start_date, duration)
         
         # 绘制治疗内容，紧密衔接
         y_after_content = self._draw_treatment_details(c, treatment_details, y_after_header)
@@ -55,14 +56,14 @@ class PDFGenerator:
         # 绘制加收信息（如果有）
         y_after_surcharge = self._draw_surcharge(c, surcharge_info, y_after_content)
         
-        # 绘制90天表格
+        # 绘制60天表格
         self._draw_table(c, start_date, y_after_surcharge - 3*mm)
         
         c.save()
         return output_path
     
     def _draw_header(self, c, hospital_name, patient_name, hospital_no,
-                     diagnosis_name, treatment_name, start_date):
+                     diagnosis_name, treatment_name, start_date, duration=''):
         """绘制表头信息，返回下一个可用的y坐标"""
         y = self.page_height - 10 * mm  # 从顶部10mm开始
         
@@ -88,7 +89,11 @@ class PDFGenerator:
         
         # 治疗项目行
         start_date_str = start_date.strftime('%Y-%m-%d')
-        c.drawString(15 * mm, y, f"治疗项目：{treatment_name}    开始日期：{start_date_str}")
+        treatment_info = f"治疗项目：{treatment_name}"
+        if duration:
+            treatment_info += f"    时长：{duration}"
+        treatment_info += f"    开始日期：{start_date_str}"
+        c.drawString(15 * mm, y, treatment_info)
         y -= 6 * mm
         
         return y

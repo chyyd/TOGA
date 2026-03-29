@@ -98,6 +98,14 @@ class SettingsDialog(QDialog):
         name_layout.addWidget(self.treatment_name_edit)
         layout.addLayout(name_layout)
         
+        # 治疗时长编辑
+        duration_layout = QHBoxLayout()
+        duration_layout.addWidget(QLabel('时长：'))
+        self.treatment_duration_edit = QLineEdit()
+        self.treatment_duration_edit.setPlaceholderText('如：30分钟')
+        duration_layout.addWidget(self.treatment_duration_edit)
+        layout.addLayout(duration_layout)
+        
         # 操作按钮
         btn_layout = QHBoxLayout()
         
@@ -187,10 +195,15 @@ class SettingsDialog(QDialog):
         if current is None:
             self.current_treatment_id = None
             self.diagnosis_list.clear()
+            self.treatment_duration_edit.clear()
             return
         
         self.current_treatment_id = current.data(Qt.UserRole)
         self.treatment_name_edit.setText(current.text())
+        
+        # 加载治疗时长
+        duration = self.config_manager.get_treatment_duration(self.current_treatment_id)
+        self.treatment_duration_edit.setText(duration)
         
         # 加载该治疗项目下的诊断
         self._refresh_diagnosis_list()
@@ -233,7 +246,8 @@ class SettingsDialog(QDialog):
             QMessageBox.warning(self, '提示', '请输入治疗项目名称')
             return
         
-        self.config_manager.add_treatment(name)
+        duration = self.treatment_duration_edit.text().strip()
+        self.config_manager.add_treatment(name, duration)
         self._refresh_treatment_list()
         QMessageBox.information(self, '成功', '添加成功')
     
@@ -248,7 +262,8 @@ class SettingsDialog(QDialog):
             QMessageBox.warning(self, '提示', '请输入治疗项目名称')
             return
         
-        self.config_manager.update_treatment(self.current_treatment_id, name)
+        duration = self.treatment_duration_edit.text().strip()
+        self.config_manager.update_treatment(self.current_treatment_id, name, duration)
         self._refresh_treatment_list()
         QMessageBox.information(self, '成功', '更新成功')
     

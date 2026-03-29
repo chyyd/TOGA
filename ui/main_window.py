@@ -355,12 +355,14 @@ class MainWindow(QMainWindow):
     
     def _get_form_data(self):
         """获取表单数据"""
+        treatment_id = self.treatment_combo.currentData()
         data = {
             'patient_name': self.name_edit.text().strip(),
             'hospital_no': self.hospital_no_edit.text().strip(),
             'treatment_name': self.treatment_combo.currentText(),
             'diagnosis_name': self.diagnosis_combo.currentText(),
             'treatment_details': self.content_text.toPlainText(),
+            'treatment_duration': self.config_manager.get_treatment_duration(treatment_id),
             'start_date': self.date_edit.date().toPyDate(),
             'hospital_name': self.config_manager.get_hospital_name(),
             'surcharge_info': ''
@@ -399,7 +401,8 @@ class MainWindow(QMainWindow):
                 data['start_date'],
                 temp_path,
                 data['hospital_name'],
-                data['surcharge_info']
+                data['surcharge_info'],
+                data['treatment_duration']
             )
             
             # 打开PDF文件
