@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -9,6 +9,21 @@
     <AssemblyName>治疗记录单生成器</AssemblyName>
     <Product>治疗记录单生成器</Product>
     <Version>2.0.0</Version>
+    
+    <!-- WPF不支持剪裁，因此不启用 PublishTrimmed -->
+    
+    <!-- 启用ReadyToRun以提前编译 -->
+    <PublishReadyToRun>true</PublishReadyToRun>
+    
+    <!-- 设置发布时的目标运行时 -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    
+    <!-- 设置发布配置 -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    
+    <!-- 应用图标 -->
+    <ApplicationIcon>Icons\app-icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,6 +36,10 @@
     <None Update="Config\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Remove="Icons\app-icon.ico" />
+    <Content Include="Icons\app-icon.ico">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
