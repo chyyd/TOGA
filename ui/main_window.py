@@ -4,7 +4,7 @@
 from PyQt5.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QLineEdit, QDateEdit, QComboBox, QTextEdit, QPushButton,
-    QMessageBox, QFileDialog, QCheckBox, QGroupBox
+    QMessageBox, QFileDialog, QCheckBox, QGroupBox, QFrame, QSizePolicy
 )
 from PyQt5.QtCore import Qt, QDate
 from PyQt5.QtGui import QFont
@@ -32,7 +32,8 @@ class MainWindow(QMainWindow):
     def init_ui(self):
         """初始化界面"""
         self.setWindowTitle('治疗记录单生成器')
-        self.setMinimumSize(500, 550)
+        # 最小窗口大小，允许纵向拉伸
+        self.setMinimumSize(480, 520)
         
         # 创建中心部件
         central_widget = QWidget()
@@ -40,42 +41,61 @@ class MainWindow(QMainWindow):
         
         # 主布局
         main_layout = QVBoxLayout(central_widget)
-        main_layout.setSpacing(8)
-        main_layout.setContentsMargins(15, 15, 15, 15)
+        main_layout.setSpacing(0)
+        main_layout.setContentsMargins(20, 15, 20, 15)
         
-        # 标题
+        # 标题（固定大小）
         title_label = QLabel('治疗记录单生成器')
-        title_label.setFont(QFont('Microsoft YaHei', 16, QFont.Bold))
+        title_label.setFont(QFont('Microsoft YaHei', 14, QFont.Bold))
         title_label.setAlignment(Qt.AlignCenter)
+        title_label.setFixedHeight(30)
+        title_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         main_layout.addWidget(title_label)
         
-        # 患者信息区
-        info_layout = self._create_info_layout()
-        main_layout.addLayout(info_layout)
+        # 分隔线
+        main_layout.addWidget(self._create_separator())
         
-        # 治疗选择和内容区（合并为一个紧凑区域）
-        treatment_content_layout = self._create_treatment_content_layout()
-        main_layout.addLayout(treatment_content_layout)
+        # 患者信息区（固定大小）
+        info_group = QGroupBox('患者信息')
+        info_group.setLayout(self._create_info_layout())
+        info_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        main_layout.addWidget(info_group)
         
-        # 加收选项区
+        # 治疗选择区（可纵向拉伸）
+        treatment_group = QGroupBox('治疗信息')
+        treatment_group.setLayout(self._create_treatment_content_layout())
+        treatment_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        main_layout.addWidget(treatment_group, 1)  # 拉伸因子为1
+        
+        # 加收选项区（固定大小）
         self.surcharge_group = self._create_surcharge_group()
+        self.surcharge_group.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         main_layout.addWidget(self.surcharge_group)
         
-        # 按钮区
+        # 分隔线
+        main_layout.addWidget(self._create_separator())
+        
+        # 按钮区（固定大小）
         button_layout = self._create_button_layout()
         main_layout.addLayout(button_layout)
-        
-        # 设置主布局对齐到顶部，防止内容窜动
-        main_layout.setAlignment(Qt.AlignTop)
         
         # 加载初始数据
         self._load_treatments()
     
+    def _create_separator(self):
+        """创建分隔线"""
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        line.setFixedHeight(1)
+        return line
+    
     def _create_info_layout(self):
         """创建患者信息区域"""
         layout = QFormLayout()
-        layout.setSpacing(8)
-        layout.setFieldGrowthPolicy(QFormLayout.ExpandingFieldsGrow)
+        layout.setSpacing(6)
+        layout.setContentsMargins(10, 5, 10, 5)
+        layout.setLabelAlignment(Qt.AlignRight | Qt.AlignVCenter)
         
         # 姓名
         self.name_edit = QLineEdit()
@@ -94,108 +114,152 @@ class MainWindow(QMainWindow):
         self.date_edit.setCalendarPopup(True)
         self.date_edit.setDate(QDate.currentDate())
         self.date_edit.setDisplayFormat('yyyy-MM-dd')
-        layout.addRow('治疗开始日期：', self.date_edit)
+        layout.addRow('开始日期：', self.date_edit)
         
         return layout
     
     def _create_treatment_content_layout(self):
-        """创建治疗选择和内容区域（合并布局）"""
+        """创建治疗选择和内容区域"""
         layout = QVBoxLayout()
-        layout.setSpacing(5)
+        layout.setSpacing(6)
+        layout.setContentsMargins(10, 5, 10, 5)
         
-        # 治疗项目
-        treatment_row = QHBoxLayout()
-        treatment_row.setSpacing(5)
-        treatment_label = QLabel('治疗项目：')
-        treatment_label.setFixedWidth(80)
+        # 治疗项目和诊断 - 使用表单布局
+        form_layout = QFormLayout()
+        form_layout.setSpacing(6)
+        form_layout.setLabelAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        
         self.treatment_combo = QComboBox()
         self.treatment_combo.currentIndexChanged.connect(self._on_treatment_changed)
-        treatment_row.addWidget(treatment_label)
-        treatment_row.addWidget(self.treatment_combo)
-        layout.addLayout(treatment_row)
+        form_layout.addRow('治疗项目：', self.treatment_combo)
         
-        # 诊断
-        diagnosis_row = QHBoxLayout()
-        diagnosis_row.setSpacing(5)
-        diagnosis_label = QLabel('诊断：')
-        diagnosis_label.setFixedWidth(80)
         self.diagnosis_combo = QComboBox()
         self.diagnosis_combo.currentIndexChanged.connect(self._on_diagnosis_changed)
-        diagnosis_row.addWidget(diagnosis_label)
-        diagnosis_row.addWidget(self.diagnosis_combo)
-        layout.addLayout(diagnosis_row)
+        form_layout.addRow('诊断：', self.diagnosis_combo)
         
-        # 治疗内容
+        layout.addLayout(form_layout)
+        
+        # 治疗内容 - 可以纵向拉伸
         content_row = QHBoxLayout()
-        content_row.setSpacing(5)
         content_label = QLabel('治疗内容：')
-        content_label.setFixedWidth(80)
-        content_label.setAlignment(Qt.AlignTop)
+        content_label.setFixedWidth(70)
+        content_label.setAlignment(Qt.AlignRight | Qt.AlignTop)
+        content_row.addWidget(content_label)
+        
         self.content_text = QTextEdit()
         self.content_text.setPlaceholderText('选择治疗项目和诊断后自动填充，可编辑')
-        self.content_text.setMaximumHeight(80)
-        content_row.addWidget(content_label)
+        self.content_text.setMinimumHeight(70)
+        self.content_text.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         content_row.addWidget(self.content_text)
-        layout.addLayout(content_row)
+        
+        layout.addLayout(content_row, 1)  # 拉伸因子为1
         
         return layout
     
     def _create_surcharge_group(self):
         """创建加收选项区域"""
         group = QGroupBox('加收选项（仅针灸）')
-        layout = QHBoxLayout()
+        layout = QVBoxLayout()
+        layout.setSpacing(4)
+        layout.setContentsMargins(10, 5, 10, 5)
         
-        # 启用加收录选框
-        self.surcharge_checkbox = QCheckBox('启用加收')
-        self.surcharge_checkbox.stateChanged.connect(self._on_surcharge_changed)
-        layout.addWidget(self.surcharge_checkbox)
+        # 第一行：职称选择
+        title_row = QHBoxLayout()
+        title_label = QLabel('职称：')
+        title_label.setFixedWidth(65)
+        title_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        title_row.addWidget(title_label)
+        self.title_combo = QComboBox()
+        self.title_combo.currentTextChanged.connect(self._on_title_changed)
+        self.title_combo.setMinimumWidth(120)
+        title_row.addWidget(self.title_combo)
+        title_row.addStretch()
+        layout.addLayout(title_row)
         
-        # 操作医师下拉
-        layout.addWidget(QLabel('操作医师：'))
-        self.doctor_combo = QComboBox()
-        self.doctor_combo.setEnabled(False)
-        self.doctor_combo.setMinimumWidth(120)
-        layout.addWidget(self.doctor_combo)
+        # 第二、三行：加收项目复选框（分两行）
+        self.items_widget = QWidget()
+        self.items_layout = QVBoxLayout(self.items_widget)
+        self.items_layout.setContentsMargins(0, 0, 0, 0)
+        self.items_layout.setSpacing(2)
+        self.surcharge_checkboxes = []
+        layout.addWidget(self.items_widget)
         
-        # 加收信息预览
-        self.surcharge_preview = QLabel('')
-        self.surcharge_preview.setStyleSheet('color: #666;')
-        layout.addWidget(self.surcharge_preview)
-        
-        layout.addStretch()
         group.setLayout(layout)
-        
-        # 始终显示，但初始禁用
         self.surcharge_group = group
+        
+        # 加载职称选项
+        self._load_titles()
         self._set_surcharge_enabled(False)
         
         return group
     
-    def _on_surcharge_changed(self, state):
-        """加收录选框状态改变"""
-        self.doctor_combo.setEnabled(state == Qt.Checked)
-        self._update_surcharge_preview()
+    def _load_titles(self):
+        """加载职称选项"""
+        self.title_combo.clear()
+        titles = self.config_manager.get_surcharge_titles()
+        for title in titles:
+            self.title_combo.addItem(title)
+    
+    def _on_title_changed(self, title):
+        """职称改变时更新加收项目选项"""
+        # 清除原有复选框和布局
+        for cb in self.surcharge_checkboxes:
+            cb.deleteLater()
+        self.surcharge_checkboxes.clear()
+        
+        # 清除子布局
+        while self.items_layout.count():
+            child = self.items_layout.takeAt(0)
+            if child.layout():
+                # 清除布局中的控件
+                while child.layout().count():
+                    item = child.layout().takeAt(0)
+                    if item.widget():
+                        item.widget().deleteLater()
+        
+        if not title:
+            return
+        
+        # 加载该职称对应的加收项目，分两行显示
+        items = self.config_manager.get_surcharge_items_by_title(title)
+        
+        # 第一行
+        row1 = QHBoxLayout()
+        label = QLabel('加收项目：')
+        label.setFixedWidth(65)
+        label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        row1.addWidget(label)
+        for i, item in enumerate(items[:2]):
+            cb = QCheckBox(item)
+            row1.addWidget(cb)
+            self.surcharge_checkboxes.append(cb)
+        row1.addStretch()
+        self.items_layout.addLayout(row1)
+        
+        # 第二行（如果有）
+        if len(items) > 2:
+            row2 = QHBoxLayout()
+            row2.addSpacing(65)  # 对齐"加收项目："标签
+            for item in items[2:]:
+                cb = QCheckBox(item)
+                row2.addWidget(cb)
+                self.surcharge_checkboxes.append(cb)
+            row2.addStretch()
+            self.items_layout.addLayout(row2)
     
     def _update_surcharge_preview(self):
-        """更新加收信息预览"""
-        if self.surcharge_checkbox.isChecked():
-            doctor_title = self.doctor_combo.currentText()
-            surcharge = self.config_manager.get_surcharge_by_title(doctor_title)
-            if surcharge:
-                items_str = '、'.join(surcharge['items'])
-                self.surcharge_preview.setText(f'{doctor_title}{items_str}')
-            else:
-                self.surcharge_preview.setText('')
-        else:
-            self.surcharge_preview.setText('')
+        """更新加收信息预览（可选实现）"""
+        pass
     
     def _create_button_layout(self):
         """创建按钮区域"""
         layout = QHBoxLayout()
         layout.setSpacing(10)
+        layout.setContentsMargins(0, 10, 0, 5)
         
         # 设置按钮
         settings_btn = QPushButton('后台设置')
+        settings_btn.setFixedWidth(90)
         settings_btn.clicked.connect(self._open_settings)
         layout.addWidget(settings_btn)
         
@@ -203,6 +267,7 @@ class MainWindow(QMainWindow):
         
         # 预览按钮
         preview_btn = QPushButton('预览')
+        preview_btn.setFixedWidth(90)
         preview_btn.clicked.connect(self._preview_pdf)
         preview_btn.setDefault(True)
         layout.addWidget(preview_btn)
@@ -229,38 +294,19 @@ class MainWindow(QMainWindow):
         is_acupuncture = self.config_manager.is_acupuncture_treatment(treatment_name)
         self._set_surcharge_enabled(is_acupuncture)
         
-        # 如果是针灸类，加载加收职称
+        # 如果是针灸类，重新加载加收项目
         if is_acupuncture:
-            self._load_surcharge_doctors()
+            self._on_title_changed(self.title_combo.currentText())
         
         self._load_diagnoses()
     
     def _set_surcharge_enabled(self, enabled):
         """设置加收区域的启用状态"""
-        self.surcharge_checkbox.setEnabled(enabled)
-        self.doctor_combo.setEnabled(enabled and self.surcharge_checkbox.isChecked())
-        
-        if not enabled:
-            self.surcharge_checkbox.setChecked(False)
-            self.surcharge_preview.setText('（当前治疗项目不适用）')
-            self.surcharge_preview.setStyleSheet('color: #999; font-style: italic;')
-        else:
-            self.surcharge_preview.setText('')
-            self.surcharge_preview.setStyleSheet('color: #666;')
-    
-    def _load_surcharge_doctors(self):
-        """加载加收职称选项"""
-        self.doctor_combo.clear()
-        titles = self.config_manager.get_surcharge_titles()
-        for title in titles:
-            self.doctor_combo.addItem(title)
-        
-        # 默认选中主任医师
-        index = self.doctor_combo.findText('主任医师')
-        if index >= 0:
-            self.doctor_combo.setCurrentIndex(index)
-        
-        self._update_surcharge_preview()
+        self.title_combo.setEnabled(enabled)
+        for cb in self.surcharge_checkboxes:
+            cb.setEnabled(enabled)
+            if not enabled:
+                cb.setChecked(False)
     
     def _load_diagnoses(self):
         """加载诊断列表"""
@@ -320,13 +366,17 @@ class MainWindow(QMainWindow):
             'surcharge_info': ''
         }
         
-        # 加收信息
-        if self.surcharge_checkbox.isChecked() and self.surcharge_checkbox.isEnabled():
-            doctor_title = self.doctor_combo.currentText()
-            surcharge = self.config_manager.get_surcharge_by_title(doctor_title)
-            if surcharge:
-                items_str = '、'.join(surcharge['items'])
-                data['surcharge_info'] = f'{doctor_title}{items_str}'
+        # 加收信息 - 职称 + 选中的加收项目
+        if self.title_combo.isEnabled():
+            selected_items = []
+            for cb in self.surcharge_checkboxes:
+                if cb.isChecked():
+                    selected_items.append(cb.text())
+            
+            if selected_items:
+                title = self.title_combo.currentText()
+                items_str = '、'.join(selected_items)
+                data['surcharge_info'] = f'{title}{items_str}'
         
         return data
     
