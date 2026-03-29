@@ -106,9 +106,11 @@ public class PdfGenerator
                         });
                     }
 
-                    // 7. 表格 - 填满剩余空间（关键改动）
+                    // 7. 表格 - 使用固定高度填满剩余空间
                     col.Item().Height(3, Unit.Millimetre);
-                    col.Item().Extend().Element(c => DrawTable(c, startDate));
+                    // A4高度297mm - 上下边距各10mm = 277mm可用
+                    // 表格高度 = 277mm - 表头区域(约52mm) = 225mm
+                    col.Item().Height(225, Unit.Millimetre).Element(c => DrawTable(c, startDate));
                 });
             });
         });
@@ -121,7 +123,7 @@ public class PdfGenerator
     {
         container.Table(table =>
         {
-            // 3大列
+            // 3大列，每列等宽
             table.ColumnsDefinition(columns =>
             {
                 columns.RelativeColumn();
@@ -142,20 +144,21 @@ public class PdfGenerator
     {
         container.Border(1).Column(col =>
         {
-            // 表头行 - 灰色背景
+            // 表头行 - 灰色背景，列宽比例：日期18%, 时间28%, 操作者27%, 患者签字27%
+            // 转换为相对比例：18:28:27:27 ≈ 2:3:3:3 (简化为整数比)
             col.Item().Background(Colors.Grey.Lighten3).Row(row =>
             {
-                row.RelativeItem().BorderRight(0.5f).AlignCenter().Padding(2)
+                row.RelativeItem(2).BorderRight(0.5f).AlignCenter().Padding(2)
                     .Text("日  期").FontSize(8).Bold();
-                row.RelativeItem().BorderRight(0.5f).AlignCenter().Padding(2)
+                row.RelativeItem(3).BorderRight(0.5f).AlignCenter().Padding(2)
                     .Text("时  间").FontSize(8).Bold();
-                row.RelativeItem().BorderRight(0.5f).AlignCenter().Padding(2)
+                row.RelativeItem(3).BorderRight(0.5f).AlignCenter().Padding(2)
                     .Text("操作者").FontSize(8).Bold();
-                row.RelativeItem().AlignCenter().Padding(2)
+                row.RelativeItem(3).AlignCenter().Padding(2)
                     .Text("患者签字").FontSize(8).Bold();
             });
 
-            // 20行数据 - 平均分配剩余空间
+            // 20行数据 - 平均分配高度
             for (int row = 0; row < 20; row++)
             {
                 int dayOffset = bigCol * 20 + row;
@@ -163,14 +166,13 @@ public class PdfGenerator
                 int weekdayIndex = (int)currentDate.DayOfWeek == 0 ? 6 : (int)currentDate.DayOfWeek - 1;
                 string dateStr = $"{currentDate.Month}/{currentDate.Day} {Weekdays[weekdayIndex]}";
 
-                // 每行平均填充剩余空间
                 col.Item().Extend().BorderBottom(0.5f).Row(dataRow =>
                 {
-                    dataRow.RelativeItem().BorderRight(0.5f).AlignCenter().AlignMiddle()
+                    dataRow.RelativeItem(2).BorderRight(0.5f).AlignCenter().AlignMiddle()
                         .Text(dateStr).FontSize(7);
-                    dataRow.RelativeItem().BorderRight(0.5f);
-                    dataRow.RelativeItem().BorderRight(0.5f);
-                    dataRow.RelativeItem();
+                    dataRow.RelativeItem(3).BorderRight(0.5f);
+                    dataRow.RelativeItem(3).BorderRight(0.5f);
+                    dataRow.RelativeItem(3);
                 });
             }
         });
