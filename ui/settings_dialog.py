@@ -32,26 +32,29 @@ class SettingsDialog(QDialog):
         self.setMinimumSize(700, 500)
         
         layout = QVBoxLayout(self)
+        layout.setSpacing(0)
+        layout.setContentsMargins(20, 15, 20, 15)
         
-        # 标题
+        # 标题（固定大小）
         title_label = QLabel('后台设置')
         title_label.setFont(QFont('Microsoft YaHei', 14, QFont.Bold))
         title_label.setAlignment(Qt.AlignCenter)
+        title_label.setFixedHeight(30)
         layout.addWidget(title_label)
         
         # 医院名称设置
         hospital_layout = QHBoxLayout()
-        hospital_layout.addWidget(QLabel('医院名称（可选）：'))
+        hospital_layout.setContentsMargins(0, 10, 0, 0)
+        hospital_label = QLabel('医院名称（可选）：')
+        hospital_label.setFixedWidth(120)
+        hospital_layout.addWidget(hospital_label)
         self.hospital_edit = QLineEdit()
         self.hospital_edit.setPlaceholderText('显示在治疗单顶部')
         hospital_layout.addWidget(self.hospital_edit)
         layout.addLayout(hospital_layout)
         
         # 分隔线
-        line = QFrame()
-        line.setFrameShape(QFrame.HLine)
-        line.setFrameShadow(QFrame.Sunken)
-        layout.addWidget(line)
+        layout.addWidget(self._create_separator())
         
         # 主内容区：左右分割
         splitter = QSplitter(Qt.Horizontal)
@@ -67,24 +70,41 @@ class SettingsDialog(QDialog):
         
         splitter.setSizes([300, 400])
         
+        # 分隔线
+        layout.addWidget(self._create_separator())
+        
         # 底部按钮
         button_layout = QHBoxLayout()
+        button_layout.setSpacing(10)
+        button_layout.setContentsMargins(0, 10, 0, 5)
         button_layout.addStretch()
         
         save_btn = QPushButton('保存')
+        save_btn.setFixedWidth(90)
         save_btn.clicked.connect(self._save_settings)
         button_layout.addWidget(save_btn)
         
         cancel_btn = QPushButton('取消')
+        cancel_btn.setFixedWidth(90)
         cancel_btn.clicked.connect(self.reject)
         button_layout.addWidget(cancel_btn)
         
         layout.addLayout(button_layout)
     
+    def _create_separator(self):
+        """创建分隔线"""
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        line.setFixedHeight(1)
+        return line
+    
     def _create_treatment_panel(self):
         """创建治疗项目管理面板"""
         group = QGroupBox('治疗项目')
         layout = QVBoxLayout(group)
+        layout.setSpacing(6)
+        layout.setContentsMargins(10, 5, 10, 5)
         
         # 项目列表
         self.treatment_list = QListWidget()
@@ -93,14 +113,18 @@ class SettingsDialog(QDialog):
         
         # 项目名称编辑
         name_layout = QHBoxLayout()
-        name_layout.addWidget(QLabel('名称：'))
+        name_label = QLabel('名称：')
+        name_label.setFixedWidth(50)
+        name_layout.addWidget(name_label)
         self.treatment_name_edit = QLineEdit()
         name_layout.addWidget(self.treatment_name_edit)
         layout.addLayout(name_layout)
         
         # 治疗时长编辑
         duration_layout = QHBoxLayout()
-        duration_layout.addWidget(QLabel('时长：'))
+        duration_label = QLabel('时长：')
+        duration_label.setFixedWidth(50)
+        duration_layout.addWidget(duration_label)
         self.treatment_duration_edit = QLineEdit()
         self.treatment_duration_edit.setPlaceholderText('如：30分钟')
         duration_layout.addWidget(self.treatment_duration_edit)
@@ -108,19 +132,24 @@ class SettingsDialog(QDialog):
         
         # 操作按钮
         btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(10)
         
         add_btn = QPushButton('添加')
+        add_btn.setFixedWidth(70)
         add_btn.clicked.connect(self._add_treatment)
         btn_layout.addWidget(add_btn)
         
         update_btn = QPushButton('更新')
+        update_btn.setFixedWidth(70)
         update_btn.clicked.connect(self._update_treatment)
         btn_layout.addWidget(update_btn)
         
         delete_btn = QPushButton('删除')
+        delete_btn.setFixedWidth(70)
         delete_btn.clicked.connect(self._delete_treatment)
         btn_layout.addWidget(delete_btn)
         
+        btn_layout.addStretch()
         layout.addLayout(btn_layout)
         
         return group
@@ -129,6 +158,8 @@ class SettingsDialog(QDialog):
         """创建诊断管理面板"""
         group = QGroupBox('诊断及治疗内容')
         layout = QVBoxLayout(group)
+        layout.setSpacing(6)
+        layout.setContentsMargins(10, 5, 10, 5)
         
         # 提示
         tip_label = QLabel('请先在左侧选择一个治疗项目')
@@ -142,12 +173,14 @@ class SettingsDialog(QDialog):
         
         # 诊断名称
         name_layout = QHBoxLayout()
-        name_layout.addWidget(QLabel('诊断：'))
+        name_label = QLabel('诊断：')
+        name_label.setFixedWidth(50)
+        name_layout.addWidget(name_label)
         self.diagnosis_name_edit = QLineEdit()
         name_layout.addWidget(self.diagnosis_name_edit)
         layout.addLayout(name_layout)
         
-        # 治疗内容
+        # 治疗内容（纵向排列）
         layout.addWidget(QLabel('治疗内容：'))
         self.details_edit = QTextEdit()
         self.details_edit.setPlaceholderText('输入该诊断对应的治疗具体内容')
@@ -155,19 +188,24 @@ class SettingsDialog(QDialog):
         
         # 操作按钮
         btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(10)
         
         add_btn = QPushButton('添加')
+        add_btn.setFixedWidth(70)
         add_btn.clicked.connect(self._add_diagnosis)
         btn_layout.addWidget(add_btn)
         
         update_btn = QPushButton('更新')
+        update_btn.setFixedWidth(70)
         update_btn.clicked.connect(self._update_diagnosis)
         btn_layout.addWidget(update_btn)
         
         delete_btn = QPushButton('删除')
+        delete_btn.setFixedWidth(70)
         delete_btn.clicked.connect(self._delete_diagnosis)
         btn_layout.addWidget(delete_btn)
         
+        btn_layout.addStretch()
         layout.addLayout(btn_layout)
         
         return group
