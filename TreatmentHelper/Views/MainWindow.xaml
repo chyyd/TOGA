@@ -4,126 +4,272 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="治疗记录单生成器" Height="580" Width="500"
+        Title="治疗记录单生成器" Height="580" Width="720"
+        MinWidth="600" MinHeight="480"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResizeWithGrip"
-        FontFamily="Microsoft YaHei">
+        FontFamily="Microsoft YaHei"
+        Background="#F0F2F5">
+    
+    <Window.Resources>
+        <SolidColorBrush x:Key="PrimaryColor" Color="#2196F3"/>
+        <SolidColorBrush x:Key="PrimaryDarkColor" Color="#1976D2"/>
+        <SolidColorBrush x:Key="TextPrimary" Color="#1A1A2E"/>
+        <SolidColorBrush x:Key="TextSecondary" Color="#6B7280"/>
+        <SolidColorBrush x:Key="BorderBrush" Color="#D1D5DB"/>
+        <SolidColorBrush x:Key="CardBg" Color="White"/>
+        
+        <!-- 按钮 -->
+        <Style x:Key="PrimaryBtn" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Padding" Value="24,8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource PrimaryDarkColor}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <Style x:Key="GhostBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F3F4F6"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- 卡片 -->
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBg}"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect ShadowDepth="0" BlurRadius="8" Opacity="0.08" Color="#000"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- 输入框 -->
+        <Style x:Key="Input" TargetType="TextBox">
+            <Setter Property="Background" Value="#F9FAFB"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryColor}"/>
+                    <Setter Property="Background" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <!-- 下拉框 -->
+        <Style x:Key="Select" TargetType="ComboBox">
+            <Setter Property="Background" Value="#F9FAFB"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,7"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        
+        <Style x:Key="DatePick" TargetType="DatePicker">
+            <Setter Property="Background" Value="#F9FAFB"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        
+        <!-- 字段标签 -->
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,0,8,4"/>
+        </Style>
+    </Window.Resources>
+    
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <!-- 标题 -->
             <RowDefinition Height="Auto"/>
+            <!-- 患者信息 -->
             <RowDefinition Height="Auto"/>
+            <!-- 治疗项目+诊断 -->
             <RowDefinition Height="*"/>
+            <!-- 治疗内容（弹性） -->
             <RowDefinition Height="Auto"/>
+            <!-- 加收 -->
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <!-- 按钮 -->
         </Grid.RowDefinitions>
-
-        <!-- 标题 -->
-        <TextBlock Grid.Row="0" Text="治疗记录单生成器" 
-                   FontSize="18" FontWeight="Bold" 
-                   HorizontalAlignment="Center" Margin="0,0,0,10"/>
-
-        <!-- 分隔线 -->
-        <Separator Grid.Row="1" Margin="0,0,0,10"/>
-
-        <!-- 患者信息 -->
-        <GroupBox Grid.Row="2" Header="患者信息" Padding="10,5">
+        
+        <!-- ① 标题 -->
+        <TextBlock Grid.Row="0" Text="治疗记录单生成器" FontSize="20" FontWeight="Bold"
+                   Foreground="{StaticResource TextPrimary}" Margin="4,4,0,12"/>
+        
+        <!-- ② 患者信息：姓名 | 住院号 | 开始日期 横排 -->
+        <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,10">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="70"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="180"/>
                 </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="姓名：" 
-                           VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                <TextBox Grid.Row="0" Grid.Column="1" x:Name="NameTextBox" 
-                         Margin="5" MaxLength="20"
-                         ToolTip="请输入患者姓名"/>
-
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="住院号：" 
-                           VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                <TextBox Grid.Row="1" Grid.Column="1" x:Name="HospitalNoTextBox" 
-                         Margin="5" MaxLength="20"
-                         ToolTip="可选"/>
-
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="开始日期：" 
-                           VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                <DatePicker Grid.Row="2" Grid.Column="1" x:Name="StartDatePicker" 
-                            Margin="5" SelectedDateFormat="Short"/>
+                
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="姓名" Style="{StaticResource FieldLabel}"/>
+                    <TextBox x:Name="NameTextBox" Style="{StaticResource Input}" MaxLength="20"
+                             ToolTip="请输入患者姓名"/>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="住院号（选填）" Style="{StaticResource FieldLabel}"/>
+                    <TextBox x:Name="HospitalNoTextBox" Style="{StaticResource Input}" MaxLength="20"
+                             ToolTip="可选"/>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="4">
+                    <TextBlock Text="开始日期" Style="{StaticResource FieldLabel}"/>
+                    <DatePicker x:Name="StartDatePicker" Style="{StaticResource DatePick}"
+                                SelectedDateFormat="Short"/>
+                </StackPanel>
             </Grid>
-        </GroupBox>
-
-        <!-- 治疗信息 -->
-        <GroupBox Grid.Row="3" Header="治疗信息" Padding="10,5" Margin="0,10,0,0">
+        </Border>
+        
+        <!-- ③ 治疗项目 + 诊断 并排 -->
+        <Border Grid.Row="2" Style="{StaticResource Card}" Margin="0,0,0,10">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="70"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="20"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
+                
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="治疗项目" Style="{StaticResource FieldLabel}"/>
+                    <ComboBox x:Name="TreatmentComboBox" Style="{StaticResource Select}"
+                              SelectionChanged="TreatmentComboBox_SelectionChanged"/>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="诊断" Style="{StaticResource FieldLabel}"/>
+                    <ComboBox x:Name="DiagnosisComboBox" Style="{StaticResource Select}"
+                              SelectionChanged="DiagnosisComboBox_SelectionChanged"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- ④ 治疗内容（弹性区域） -->
+        <Border Grid.Row="3" Style="{StaticResource Card}" VerticalAlignment="Stretch" Margin="0,0,0,10">
+            <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="治疗项目：" 
-                           VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                <ComboBox Grid.Row="0" Grid.Column="1" x:Name="TreatmentComboBox" 
-                          Margin="5" SelectionChanged="TreatmentComboBox_SelectionChanged"/>
-
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="诊断：" 
-                           VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                <ComboBox Grid.Row="1" Grid.Column="1" x:Name="DiagnosisComboBox" 
-                          Margin="5" SelectionChanged="DiagnosisComboBox_SelectionChanged"/>
-
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="治疗内容：" 
-                           VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,5,0,0"/>
-                <TextBox Grid.Row="2" Grid.Column="1" x:Name="ContentTextBox" 
-                         Margin="5" AcceptsReturn="True" TextWrapping="Wrap"
+                <TextBlock Grid.Row="0" Text="治疗内容" Style="{StaticResource FieldLabel}" Margin="0,0,0,6"/>
+                <TextBox Grid.Row="1" x:Name="ContentTextBox"
+                         Style="{StaticResource Input}"
+                         AcceptsReturn="True" TextWrapping="Wrap"
                          VerticalScrollBarVisibility="Auto"
-                         MinHeight="100" ToolTip="选择治疗项目和诊断后自动填充，可编辑"/>
+                         VerticalContentAlignment="Top"
+                         MinHeight="60"
+                         ToolTip="选择治疗项目和诊断后自动填充，可编辑"/>
             </Grid>
-        </GroupBox>
-
-        <!-- 加收选项 -->
-        <GroupBox Grid.Row="4" Header="加收选项（仅针灸）" Padding="10,5" Margin="0,10,0,0"
-                  x:Name="SurchargeGroupBox">
-            <StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,2">
-                    <TextBlock Text="职称：" Width="65" 
-                               VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                    <ComboBox x:Name="TitleComboBox" Width="150" Margin="5,0"
+        </Border>
+        
+        <!-- ⑤ 加收选项 -->
+        <Border Grid.Row="4" Style="{StaticResource Card}" Margin="0,0,0,10" x:Name="SurchargeGroupBox">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock Text="加收项目" FontSize="13" FontWeight="Medium"
+                               Foreground="{StaticResource TextPrimary}" Margin="0,0,0,4"/>
+                    <ComboBox x:Name="TitleComboBox" Width="120"
+                              Style="{StaticResource Select}"
                               SelectionChanged="TitleComboBox_SelectionChanged"/>
                 </StackPanel>
-                <!-- 加收项目第一行 -->
-                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                    <TextBlock Text="加收项目：" Width="65" 
-                               VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                    <StackPanel x:Name="ItemsRow1Panel" Orientation="Horizontal"/>
-                </StackPanel>
-                <!-- 加收项目第二行 -->
-                <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                    <TextBlock Text="" Width="65"/>
+                
+                <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                    <StackPanel x:Name="ItemsRow1Panel" Orientation="Horizontal" Margin="0,0,0,4"/>
                     <StackPanel x:Name="ItemsRow2Panel" Orientation="Horizontal"/>
                 </StackPanel>
-            </StackPanel>
-        </GroupBox>
-
-        <!-- 分隔线 -->
-        <Separator Grid.Row="5" Margin="0,10,0,5"/>
-
-        <!-- 按钮 -->
-        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Center">
-            <Button Content="后台设置" Width="90" Height="28" Margin="0,0,20,0"
-                    Click="SettingsButton_Click"/>
-            <Button Content="预览" Width="90" Height="28" IsDefault="True"
-                    Click="PreviewButton_Click"/>
-        </StackPanel>
+            </Grid>
+        </Border>
+        
+        <!-- ⑥ 按钮栏 -->
+        <Grid Grid.Row="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <Button Grid.Column="1" Content="⚙ 后台设置"
+                    Style="{StaticResource GhostBtn}"
+                    Margin="0,0,10,0" Click="SettingsButton_Click"/>
+            <Button Grid.Column="2" Content="生成预览"
+                    Style="{StaticResource PrimaryBtn}"
+                    IsDefault="True" Click="PreviewButton_Click"/>
+        </Grid>
     </Grid>
 </Window>
