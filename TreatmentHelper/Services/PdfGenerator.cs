@@ -106,9 +106,9 @@ public class PdfGenerator
                         });
                     }
 
-                    // 7. 表格 - 填满剩余空间
+                    // 7. 表格 - 填满剩余空间（关键改动）
                     col.Item().Height(3, Unit.Millimetre);
-                    col.Item().Element(c => DrawTable(c, startDate));
+                    col.Item().Extend().Element(c => DrawTable(c, startDate));
                 });
             });
         });
@@ -143,7 +143,7 @@ public class PdfGenerator
         container.Border(1).Column(col =>
         {
             // 表头行 - 灰色背景
-            col.Item().BorderBottom(0.5f).Background(Colors.Grey.Lighten3).Row(row =>
+            col.Item().Background(Colors.Grey.Lighten3).Row(row =>
             {
                 row.RelativeItem().BorderRight(0.5f).AlignCenter().Padding(2)
                     .Text("日  期").FontSize(8).Bold();
@@ -155,7 +155,7 @@ public class PdfGenerator
                     .Text("患者签字").FontSize(8).Bold();
             });
 
-            // 20行数据
+            // 20行数据 - 平均分配剩余空间
             for (int row = 0; row < 20; row++)
             {
                 int dayOffset = bigCol * 20 + row;
@@ -163,9 +163,10 @@ public class PdfGenerator
                 int weekdayIndex = (int)currentDate.DayOfWeek == 0 ? 6 : (int)currentDate.DayOfWeek - 1;
                 string dateStr = $"{currentDate.Month}/{currentDate.Day} {Weekdays[weekdayIndex]}";
 
-                col.Item().BorderBottom(0.5f).Row(dataRow =>
+                // 每行平均填充剩余空间
+                col.Item().Extend().BorderBottom(0.5f).Row(dataRow =>
                 {
-                    dataRow.RelativeItem().BorderRight(0.5f).AlignCenter()
+                    dataRow.RelativeItem().BorderRight(0.5f).AlignCenter().AlignMiddle()
                         .Text(dateStr).FontSize(7);
                     dataRow.RelativeItem().BorderRight(0.5f);
                     dataRow.RelativeItem().BorderRight(0.5f);
