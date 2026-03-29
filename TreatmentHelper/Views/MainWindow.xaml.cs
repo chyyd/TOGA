@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -86,22 +87,38 @@ public partial class MainWindow : Window
 
     private void LoadSurchargeItems(string title)
     {
-        ItemsCheckBoxPanel.Children.Clear();
+        // 清除两行的复选框
+        ItemsRow1Panel.Children.Clear();
+        ItemsRow2Panel.Children.Clear();
 
         if (string.IsNullOrEmpty(title))
             return;
 
         var items = _configManager.GetSurchargeItemsByTitle(title);
+        var isEnabled = SurchargeGroupBox.IsEnabled;
 
-        foreach (var item in items)
+        // 前2个放第一行
+        for (int i = 0; i < Math.Min(2, items.Count); i++)
         {
             var checkBox = new CheckBox
             {
-                Content = item,
-                Margin = new Thickness(5, 0, 10, 0),
-                IsEnabled = SurchargeGroupBox.IsEnabled
+                Content = items[i],
+                Margin = new Thickness(5, 0, 15, 0),
+                IsEnabled = isEnabled
             };
-            ItemsCheckBoxPanel.Children.Add(checkBox);
+            ItemsRow1Panel.Children.Add(checkBox);
+        }
+
+        // 后面的放第二行
+        for (int i = 2; i < items.Count; i++)
+        {
+            var checkBox = new CheckBox
+            {
+                Content = items[i],
+                Margin = new Thickness(5, 0, 15, 0),
+                IsEnabled = isEnabled
+            };
+            ItemsRow2Panel.Children.Add(checkBox);
         }
     }
 
@@ -168,12 +185,15 @@ public partial class MainWindow : Window
         // 取消选中所有复选框
         if (!enabled)
         {
-            foreach (var child in ItemsCheckBoxPanel.Children)
+            foreach (var child in ItemsRow1Panel.Children)
             {
                 if (child is CheckBox checkBox)
-                {
                     checkBox.IsChecked = false;
-                }
+            }
+            foreach (var child in ItemsRow2Panel.Children)
+            {
+                if (child is CheckBox checkBox)
+                    checkBox.IsChecked = false;
             }
         }
     }
@@ -210,17 +230,21 @@ public partial class MainWindow : Window
         var diagnosisItem = (ComboBoxItem)DiagnosisComboBox.SelectedItem;
         var treatmentId = treatmentItem.Tag?.ToString() ?? "";
 
-        // 获取加收信息
+        // 获取加收信息 - 从两行收集
         var surchargeInfo = "";
         if (SurchargeGroupBox.IsEnabled && TitleComboBox.SelectedItem is string title)
         {
-            var selectedItems = new System.Collections.Generic.List<string>();
-            foreach (var child in ItemsCheckBoxPanel.Children)
+            var selectedItems = new List<string>();
+            
+            foreach (var child in ItemsRow1Panel.Children)
             {
                 if (child is CheckBox { IsChecked: true } checkBox)
-                {
                     selectedItems.Add(checkBox.Content?.ToString() ?? "");
-                }
+            }
+            foreach (var child in ItemsRow2Panel.Children)
+            {
+                if (child is CheckBox { IsChecked: true } checkBox)
+                    selectedItems.Add(checkBox.Content?.ToString() ?? "");
             }
 
             if (selectedItems.Count > 0)

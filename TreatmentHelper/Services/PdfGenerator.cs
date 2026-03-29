@@ -9,6 +9,7 @@ namespace TreatmentHelper.Services;
 
 /// <summary>
 /// PDF生成服务 - 使用QuestPDF生成治疗记录单
+/// 精确控制布局确保一页A4可打印
 /// </summary>
 public class PdfGenerator
 {
@@ -44,17 +45,70 @@ public class PdfGenerator
 
                 page.Content().Column(col =>
                 {
-                    DrawHeader(col, hospitalName, patientName, hospitalNo, 
-                        diagnosisName, treatmentName, startDate, duration);
-                    DrawTreatmentDetails(col, treatmentDetails);
-
-                    if (!string.IsNullOrEmpty(surchargeInfo))
+                    // 1. 医院名称
+                    if (!string.IsNullOrEmpty(hospitalName))
                     {
-                        DrawSurcharge(col, surchargeInfo);
+                        col.Item().AlignCenter().Text(hospitalName).FontSize(14).Bold();
+                        col.Item().Height(3, Unit.Millimetre);
                     }
 
-                    col.Item().PaddingTop(3, Unit.Millimetre);
-                    DrawTable(col, startDate);
+                    // 2. 标题
+                    col.Item().AlignCenter().Text("治疗记录单").FontSize(16).Bold();
+                    col.Item().Height(4, Unit.Millimetre);
+
+                    // 3. 患者信息行
+                    col.Item().Text(text =>
+                    {
+                        text.Span("姓名：").Bold();
+                        text.Span(patientName);
+                        if (!string.IsNullOrEmpty(hospitalNo))
+                        {
+                            text.Span("    住院号：").Bold();
+                            text.Span(hospitalNo);
+                        }
+                        text.Span("    诊断：").Bold();
+                        text.Span(diagnosisName);
+                    });
+                    col.Item().Height(2, Unit.Millimetre);
+
+                    // 4. 治疗项目行
+                    col.Item().Text(text =>
+                    {
+                        text.Span("治疗项目：").Bold();
+                        text.Span(treatmentName);
+                        if (!string.IsNullOrEmpty(duration))
+                        {
+                            text.Span("    时长：").Bold();
+                            text.Span(duration);
+                        }
+                        text.Span("    开始日期：").Bold();
+                        text.Span(startDate.ToString("yyyy-MM-dd"));
+                    });
+                    col.Item().Height(2, Unit.Millimetre);
+
+                    // 5. 治疗内容
+                    var content = "治疗内容：" + treatmentDetails;
+                    var lines = SplitTextToLines(content, 75);
+                    int maxLines = Math.Min(lines.Count, 8);
+                    for (int i = 0; i < maxLines; i++)
+                    {
+                        col.Item().Text(lines[i]).FontSize(10);
+                        col.Item().Height(1, Unit.Millimetre);
+                    }
+
+                    // 6. 加收信息
+                    if (!string.IsNullOrEmpty(surchargeInfo))
+                    {
+                        col.Item().Text(text =>
+                        {
+                            text.Span("加收：").Bold();
+                            text.Span(surchargeInfo);
+                        });
+                    }
+
+                    // 7. 表格 - 填满剩余空间
+                    col.Item().Height(3, Unit.Millimetre);
+                    col.Item().Element(c => DrawTable(c, startDate));
                 });
             });
         });
@@ -63,75 +117,11 @@ public class PdfGenerator
         return outputPath;
     }
 
-    private void DrawHeader(ColumnDescriptor col, string hospitalName, string patientName,
-        string hospitalNo, string diagnosisName, string treatmentName,
-        DateTime startDate, string duration)
+    private void DrawTable(IContainer container, DateTime startDate)
     {
-        if (!string.IsNullOrEmpty(hospitalName))
+        container.Table(table =>
         {
-            col.Item().AlignCenter().Text(hospitalName).FontSize(14).Bold();
-            col.Item().PaddingVertical(3, Unit.Millimetre);
-        }
-
-        col.Item().AlignCenter().Text("治疗记录单").FontSize(16).Bold();
-        col.Item().PaddingVertical(4, Unit.Millimetre);
-
-        col.Item().Text(text =>
-        {
-            text.Span("姓名：").Bold();
-            text.Span(patientName);
-            if (!string.IsNullOrEmpty(hospitalNo))
-            {
-                text.Span("    住院号：").Bold();
-                text.Span(hospitalNo);
-            }
-            text.Span("    诊断：").Bold();
-            text.Span(diagnosisName);
-        });
-        col.Item().PaddingVertical(2, Unit.Millimetre);
-
-        col.Item().Text(text =>
-        {
-            text.Span("治疗项目：").Bold();
-            text.Span(treatmentName);
-            if (!string.IsNullOrEmpty(duration))
-            {
-                text.Span("    时长：").Bold();
-                text.Span(duration);
-            }
-            text.Span("    开始日期：").Bold();
-            text.Span(startDate.ToString("yyyy-MM-dd"));
-        });
-        col.Item().PaddingVertical(2, Unit.Millimetre);
-    }
-
-    private void DrawTreatmentDetails(ColumnDescriptor col, string treatmentDetails)
-    {
-        var content = "治疗内容：" + treatmentDetails;
-        var lines = SplitTextToLines(content, 85);
-        var maxLines = Math.Min(lines.Count, 8);
-
-        for (int i = 0; i < maxLines; i++)
-        {
-            col.Item().Text(lines[i]).FontSize(10);
-            col.Item().PaddingVertical(1, Unit.Millimetre);
-        }
-    }
-
-    private void DrawSurcharge(ColumnDescriptor col, string surchargeInfo)
-    {
-        col.Item().PaddingTop(2, Unit.Millimetre);
-        col.Item().Text(text =>
-        {
-            text.Span("加收：").Bold();
-            text.Span(surchargeInfo);
-        });
-    }
-
-    private void DrawTable(ColumnDescriptor col, DateTime startDate)
-    {
-        col.Item().Table(table =>
-        {
+            // 3大列
             table.ColumnsDefinition(columns =>
             {
                 columns.RelativeColumn();
@@ -140,11 +130,11 @@ public class PdfGenerator
             });
 
             // 第1列
-            table.Cell().Column(1).Element(c => DrawTableColumn(c, startDate, 0));
+            table.Cell().Element(c => DrawTableColumn(c, startDate, 0));
             // 第2列
-            table.Cell().Column(2).Element(c => DrawTableColumn(c, startDate, 1));
+            table.Cell().Element(c => DrawTableColumn(c, startDate, 1));
             // 第3列
-            table.Cell().Column(3).Element(c => DrawTableColumn(c, startDate, 2));
+            table.Cell().Element(c => DrawTableColumn(c, startDate, 2));
         });
     }
 
@@ -152,8 +142,8 @@ public class PdfGenerator
     {
         container.Border(1).Column(col =>
         {
-            // 表头行
-            col.Item().Border(1).Background(Colors.Grey.Lighten3).Row(row =>
+            // 表头行 - 灰色背景
+            col.Item().BorderBottom(0.5f).Background(Colors.Grey.Lighten3).Row(row =>
             {
                 row.RelativeItem().BorderRight(0.5f).AlignCenter().Padding(2)
                     .Text("日  期").FontSize(8).Bold();
@@ -170,18 +160,17 @@ public class PdfGenerator
             {
                 int dayOffset = bigCol * 20 + row;
                 var currentDate = startDate.AddDays(dayOffset);
-                var weekday = Weekdays[(int)currentDate.DayOfWeek == 0 ? 6 : (int)currentDate.DayOfWeek - 1];
-                var dateStr = $"{currentDate.Month}/{currentDate.Day} {weekday}";
+                int weekdayIndex = (int)currentDate.DayOfWeek == 0 ? 6 : (int)currentDate.DayOfWeek - 1;
+                string dateStr = $"{currentDate.Month}/{currentDate.Day} {Weekdays[weekdayIndex]}";
 
-                col.Item().BorderLeft(0.5f).BorderRight(0.5f).BorderBottom(0.5f)
-                    .Height(12, Unit.Millimetre).Row(dataRow =>
-                    {
-                        dataRow.RelativeItem().BorderRight(0.5f).AlignCenter()
-                            .Text(dateStr).FontSize(7);
-                        dataRow.RelativeItem().BorderRight(0.5f);
-                        dataRow.RelativeItem().BorderRight(0.5f);
-                        dataRow.RelativeItem();
-                    });
+                col.Item().BorderBottom(0.5f).Row(dataRow =>
+                {
+                    dataRow.RelativeItem().BorderRight(0.5f).AlignCenter()
+                        .Text(dateStr).FontSize(7);
+                    dataRow.RelativeItem().BorderRight(0.5f);
+                    dataRow.RelativeItem().BorderRight(0.5f);
+                    dataRow.RelativeItem();
+                });
             }
         });
     }

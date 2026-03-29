@@ -101,10 +101,16 @@
                     <ComboBox x:Name="TitleComboBox" Width="150" Margin="5,0"
                               SelectionChanged="TitleComboBox_SelectionChanged"/>
                 </StackPanel>
-                <StackPanel x:Name="SurchargeItemsPanel" Orientation="Horizontal" Margin="0,5,0,0">
+                <!-- 加收项目第一行 -->
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                     <TextBlock Text="加收项目：" Width="65" 
                                VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                    <StackPanel x:Name="ItemsCheckBoxPanel" Orientation="Horizontal"/>
+                    <StackPanel x:Name="ItemsRow1Panel" Orientation="Horizontal"/>
+                </StackPanel>
+                <!-- 加收项目第二行 -->
+                <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                    <TextBlock Text="" Width="65"/>
+                    <StackPanel x:Name="ItemsRow2Panel" Orientation="Horizontal"/>
                 </StackPanel>
             </StackPanel>
         </GroupBox>
