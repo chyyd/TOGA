@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="治疗记录单生成器" Height="580" Width="720"
+        Title="治疗记录单生成器" Height="800" Width="720"
         MinWidth="600" MinHeight="480"
         WindowStartupLocation="CenterScreen"
         ResizeMode="CanResizeWithGrip"
@@ -93,20 +93,6 @@
             <Setter Property="Padding" Value="10,7"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="TextBox">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="6">
-                            <ScrollViewer x:Name="PART_ContentHost"
-                                          Margin="{TemplateBinding Padding}"
-                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
             <Style.Triggers>
                 <Trigger Property="IsFocused" Value="True">
                     <Setter Property="BorderBrush" Value="{StaticResource PrimaryColor}"/>
@@ -128,8 +114,16 @@
             <Setter Property="Background" Value="#F9FAFB"/>
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="Padding" Value="10,7"/>
             <Setter Property="FontSize" Value="13"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,0,0"/>
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="{StaticResource PrimaryColor}"/>
+                    <Setter Property="Background" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
         
         <!-- 字段标签 -->
@@ -168,7 +162,7 @@
                     <ColumnDefinition Width="20"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="20"/>
-                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 
                 <StackPanel Grid.Column="0">
@@ -250,8 +244,8 @@
                 </StackPanel>
                 
                 <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                    <StackPanel x:Name="ItemsRow1Panel" Orientation="Horizontal" Margin="0,0,0,4"/>
-                    <StackPanel x:Name="ItemsRow2Panel" Orientation="Horizontal"/>
+                    <StackPanel x:Name="ItemsRow1Panel" Orientation="Horizontal" Margin="0,0,0,4" HorizontalAlignment="Left"/>
+                    <StackPanel x:Name="ItemsRow2Panel" Orientation="Horizontal" HorizontalAlignment="Left"/>
                 </StackPanel>
             </Grid>
         </Border>

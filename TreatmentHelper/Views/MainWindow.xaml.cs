@@ -110,7 +110,7 @@ public partial class MainWindow : Window
         }
 
         // 后面的放第二行
-        for (int i = 2; i < items.Count; i++)
+        for (int i = 2; i < items.Count && i < 4; i++)  // 限制最多4个项目
         {
             var checkBox = new CheckBox
             {
