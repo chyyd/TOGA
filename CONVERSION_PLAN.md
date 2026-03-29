@@ -15,26 +15,25 @@
 
 ### 阶段1: 项目初始化 ✅
 - [x] 创建 git 分支 `csharp-rewrite`
-- [ ] 创建 WPF 项目结构
-- [ ] 配置 NuGet 包依赖
+- [x] 创建 WPF 项目结构
+- [x] 配置 NuGet 包依赖
 
-### 阶段2: 数据模型层
-- [ ] 创建数据模型类
+### 阶段2: 数据模型层 ✅
+- [x] 创建数据模型类
   - `TreatmentConfig.cs` - 配置根对象
   - `Treatment.cs` - 治疗项目
   - `Diagnosis.cs` - 诊断
   - `Surcharge.cs` - 加收配置
 
-### 阶段3: 服务层
-- [ ] `ConfigManager.cs` - 配置管理服务
-- [ ] `PdfGenerator.cs` - PDF 生成服务
+### 阶段3: 服务层 ✅
+- [x] `ConfigManager.cs` - 配置管理服务
+- [x] `PdfGenerator.cs` - PDF 生成服务
 
-### 阶段4: UI层
-- [ ] `MainWindow.xaml` - 主窗口
-- [ ] `SettingsWindow.xaml` - 设置窗口
-- [ ] ViewModel 层（MVVM 模式）
+### 阶段4: UI层 ✅
+- [x] `MainWindow.xaml` - 主窗口
+- [x] `SettingsWindow.xaml` - 设置窗口
 
-### 阶段5: 打包发布
+### 阶段5: 打包发布 🔄
 - [ ] 单文件发布配置
 - [ ] 测试与优化
 

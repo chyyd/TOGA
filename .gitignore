@@ -43,3 +43,7 @@ Thumbs.db
 build/
 dist/
 *.spec
+
+# .NET
+bin/
+obj/
