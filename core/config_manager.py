@@ -4,14 +4,30 @@
 import json
 import os
 import sys
+import shutil
 
 def get_base_dir():
-    """获取基础目录，兼容PyInstaller打包"""
+    """获取基础目录（用户可写目录）
+    
+    - 打包后：返回exe所在目录
+    - 开发环境：返回项目根目录
+    """
     if getattr(sys, 'frozen', False):
-        # PyInstaller打包后的路径
-        return sys._MEIPASS
+        # 打包后：返回exe所在目录（用户可写）
+        return os.path.dirname(sys.executable)
     else:
         # 开发环境路径
+        return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def get_default_config_dir():
+    """获取默认配置目录（打包在exe内部的只读配置）
+    
+    - 打包后：返回sys._MEIPASS（临时解压目录）
+    - 开发环境：返回项目根目录
+    """
+    if getattr(sys, 'frozen', False):
+        return sys._MEIPASS
+    else:
         return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class ConfigManager:
@@ -25,12 +41,26 @@ class ConfigManager:
         self.config = self._load_config()
     
     def _load_config(self):
-        """加载配置文件"""
+        """加载配置文件
+        
+        优先从用户目录读取，如果没有则从exe内部复制默认配置
+        """
+        # 优先从用户可写目录读取
         if os.path.exists(self.config_path):
             with open(self.config_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
-        else:
-            return {"hospital_name": "", "title": "治疗记录单", "treatments": []}
+        
+        # 打包环境：从exe内部的默认配置复制
+        if getattr(sys, 'frozen', False):
+            default_path = os.path.join(get_default_config_dir(), 'data', 'treatment_config.json')
+            if os.path.exists(default_path):
+                os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
+                shutil.copy2(default_path, self.config_path)
+                with open(self.config_path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+        
+        # 都没有则返回默认空配置
+        return {"hospital_name": "", "title": "治疗记录单", "treatments": []}
     
     def save_config(self):
         """保存配置文件"""
