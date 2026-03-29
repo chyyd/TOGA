@@ -8,12 +8,15 @@ using QuestPDF.Infrastructure;
 namespace TreatmentHelper.Services;
 
 /// <summary>
-/// PDF生成服务 - 使用QuestPDF生成治疗记录单
-/// 精确控制布局确保一页A4可打印
+/// PDF生成服务 - 动态计算行高，填满剩余空间
 /// </summary>
 public class PdfGenerator
 {
     private static readonly string[] Weekdays = { "一", "二", "三", "四", "五", "六", "日" };
+    private const float PageWidthMm = 210f;
+    private const float PageHeightMm = 297f;
+    private const float MarginMm = 10f;
+    private const float LeftIndentMm = 5f;  // 文字左边缩进（对应Python的15mm从左边距算起）
 
     static PdfGenerator()
     {
@@ -37,7 +40,7 @@ public class PdfGenerator
             container.Page(page =>
             {
                 page.Size(PageSizes.A4);
-                page.Margin(10, Unit.Millimetre);
+                page.Margin(MarginMm, Unit.Millimetre);
                 page.DefaultTextStyle(x => x
                     .FontFamily("SimSun")
                     .FontSize(10)
@@ -46,18 +49,19 @@ public class PdfGenerator
                 page.Content().Column(col =>
                 {
                     // 1. 医院名称
+                    float currentY = MarginMm;
                     if (!string.IsNullOrEmpty(hospitalName))
                     {
                         col.Item().AlignCenter().Text(hospitalName).FontSize(14).Bold();
-                        col.Item().Height(3, Unit.Millimetre);
+                        currentY += 7;
                     }
 
                     // 2. 标题
                     col.Item().AlignCenter().Text("治疗记录单").FontSize(16).Bold();
-                    col.Item().Height(4, Unit.Millimetre);
+                    currentY += 8;
 
                     // 3. 患者信息行
-                    col.Item().Text(text =>
+                    col.Item().PaddingLeft(LeftIndentMm, Unit.Millimetre).Text(text =>
                     {
                         text.Span("姓名：").Bold();
                         text.Span(patientName);
@@ -69,10 +73,11 @@ public class PdfGenerator
                         text.Span("    诊断：").Bold();
                         text.Span(diagnosisName);
                     });
-                    col.Item().Height(2, Unit.Millimetre);
+                    col.Item().Height(1.5f, Unit.Millimetre);
+                    currentY += 7.5f;
 
                     // 4. 治疗项目行
-                    col.Item().Text(text =>
+                    col.Item().PaddingLeft(LeftIndentMm, Unit.Millimetre).Text(text =>
                     {
                         text.Span("治疗项目：").Bold();
                         text.Span(treatmentName);
@@ -84,33 +89,39 @@ public class PdfGenerator
                         text.Span("    开始日期：").Bold();
                         text.Span(startDate.ToString("yyyy-MM-dd"));
                     });
-                    col.Item().Height(2, Unit.Millimetre);
+                    col.Item().Height(1.5f, Unit.Millimetre);
+                    currentY += 7.5f;
 
-                    // 5. 治疗内容
+                    // 5. 治疗内容 - 使用95mm宽度（210-35=175mm）
                     var content = "治疗内容：" + treatmentDetails;
-                    var lines = SplitTextToLines(content, 75);
+                    var lines = SplitTextToLines(content, 95);
                     int maxLines = Math.Min(lines.Count, 8);
                     for (int i = 0; i < maxLines; i++)
                     {
-                        col.Item().Text(lines[i]).FontSize(10);
-                        col.Item().Height(1, Unit.Millimetre);
+                        col.Item().PaddingLeft(LeftIndentMm, Unit.Millimetre).Text(lines[i]).FontSize(10);
+                        col.Item().Height(1.5f, Unit.Millimetre);
+                        currentY += 6f;
                     }
 
                     // 6. 加收信息
                     if (!string.IsNullOrEmpty(surchargeInfo))
                     {
-                        col.Item().Text(text =>
+                        col.Item().PaddingLeft(LeftIndentMm, Unit.Millimetre).Text(text =>
                         {
                             text.Span("加收：").Bold();
                             text.Span(surchargeInfo);
                         });
+                        col.Item().Height(1.5f, Unit.Millimetre);
+                        currentY += 6f;
                     }
 
-                    // 7. 表格 - 使用固定高度填满剩余空间
-                    col.Item().Height(3, Unit.Millimetre);
-                    // A4高度297mm - 上下边距各10mm = 277mm可用
-                    // 表格高度 = 277mm - 表头区域(约52mm) = 225mm
-                    col.Item().Height(225, Unit.Millimetre).Element(c => DrawTable(c, startDate));
+                    // 7. 表格 - 动态计算行高
+                    currentY += 3; // 表格前的间距
+                    float availableHeight = PageHeightMm - MarginMm - currentY; // 剩余可用高度
+                    int tableRows = 21; // 1表头 + 20数据
+                    float rowHeight = availableHeight / tableRows;
+
+                    col.Item().Element(c => DrawTable(c, startDate, availableHeight, rowHeight));
                 });
             });
         });
@@ -119,61 +130,63 @@ public class PdfGenerator
         return outputPath;
     }
 
-    private void DrawTable(IContainer container, DateTime startDate)
+    private void DrawTable(IContainer container, DateTime startDate, float tableHeight, float rowHeight)
     {
-        container.Table(table =>
+        container.Height(tableHeight, Unit.Millimetre).Table(table =>
         {
-            // 3大列，每列等宽
+            // 12列：3个大列，每个大列4个小列 (18:28:27:27 比例)
             table.ColumnsDefinition(columns =>
             {
-                columns.RelativeColumn();
-                columns.RelativeColumn();
-                columns.RelativeColumn();
+                // 第1大列
+                columns.RelativeColumn(18);
+                columns.RelativeColumn(28);
+                columns.RelativeColumn(27);
+                columns.RelativeColumn(27);
+                // 第2大列
+                columns.RelativeColumn(18);
+                columns.RelativeColumn(28);
+                columns.RelativeColumn(27);
+                columns.RelativeColumn(27);
+                // 第3大列
+                columns.RelativeColumn(18);
+                columns.RelativeColumn(28);
+                columns.RelativeColumn(27);
+                columns.RelativeColumn(27);
             });
 
-            // 第1列
-            table.Cell().Element(c => DrawTableColumn(c, startDate, 0));
-            // 第2列
-            table.Cell().Element(c => DrawTableColumn(c, startDate, 1));
-            // 第3列
-            table.Cell().Element(c => DrawTableColumn(c, startDate, 2));
-        });
-    }
-
-    private void DrawTableColumn(IContainer container, DateTime startDate, int bigCol)
-    {
-        container.Border(1).Column(col =>
-        {
-            // 表头行 - 灰色背景，列宽比例：日期18%, 时间28%, 操作者27%, 患者签字27%
-            // 转换为相对比例：18:28:27:27 ≈ 2:3:3:3 (简化为整数比)
-            col.Item().Background(Colors.Grey.Lighten3).Row(row =>
+            // 表头行
+            for (int bigCol = 0; bigCol < 3; bigCol++)
             {
-                row.RelativeItem(2).BorderRight(0.5f).AlignCenter().Padding(2)
-                    .Text("日  期").FontSize(8).Bold();
-                row.RelativeItem(3).BorderRight(0.5f).AlignCenter().Padding(2)
-                    .Text("时  间").FontSize(8).Bold();
-                row.RelativeItem(3).BorderRight(0.5f).AlignCenter().Padding(2)
-                    .Text("操作者").FontSize(8).Bold();
-                row.RelativeItem(3).AlignCenter().Padding(2)
-                    .Text("患者签字").FontSize(8).Bold();
-            });
+                table.Cell().Border(0.5f).Height(rowHeight, Unit.Millimetre).Background(Colors.Grey.Lighten3)
+                    .AlignCenter().AlignMiddle().Text("日  期").FontSize(8).Bold();
+                table.Cell().Border(0.5f).Height(rowHeight, Unit.Millimetre).Background(Colors.Grey.Lighten3)
+                    .AlignCenter().AlignMiddle().Text("时  间").FontSize(8).Bold();
+                table.Cell().Border(0.5f).Height(rowHeight, Unit.Millimetre).Background(Colors.Grey.Lighten3)
+                    .AlignCenter().AlignMiddle().Text("操作者").FontSize(8).Bold();
+                table.Cell().Border(0.5f).Height(rowHeight, Unit.Millimetre).Background(Colors.Grey.Lighten3)
+                    .AlignCenter().AlignMiddle().Text("患者签字").FontSize(8).Bold();
+            }
 
-            // 20行数据 - 平均分配高度
+            // 20行数据
             for (int row = 0; row < 20; row++)
             {
-                int dayOffset = bigCol * 20 + row;
-                var currentDate = startDate.AddDays(dayOffset);
-                int weekdayIndex = (int)currentDate.DayOfWeek == 0 ? 6 : (int)currentDate.DayOfWeek - 1;
-                string dateStr = $"{currentDate.Month}/{currentDate.Day} {Weekdays[weekdayIndex]}";
-
-                col.Item().Extend().BorderBottom(0.5f).Row(dataRow =>
+                for (int bigCol = 0; bigCol < 3; bigCol++)
                 {
-                    dataRow.RelativeItem(2).BorderRight(0.5f).AlignCenter().AlignMiddle()
-                        .Text(dateStr).FontSize(7);
-                    dataRow.RelativeItem(3).BorderRight(0.5f);
-                    dataRow.RelativeItem(3).BorderRight(0.5f);
-                    dataRow.RelativeItem(3);
-                });
+                    int dayOffset = bigCol * 20 + row;
+                    var currentDate = startDate.AddDays(dayOffset);
+                    int weekdayIndex = (int)currentDate.DayOfWeek == 0 ? 6 : (int)currentDate.DayOfWeek - 1;
+                    string dateStr = $"{currentDate.Month}/{currentDate.Day} {Weekdays[weekdayIndex]}";
+
+                    // 日期
+                    table.Cell().Border(0.5f).Height(rowHeight, Unit.Millimetre)
+                        .AlignCenter().AlignMiddle().Text(dateStr).FontSize(7);
+                    // 时间 (空)
+                    table.Cell().Border(0.5f).Height(rowHeight, Unit.Millimetre);
+                    // 操作者 (空)
+                    table.Cell().Border(0.5f).Height(rowHeight, Unit.Millimetre);
+                    // 患者签字 (空)
+                    table.Cell().Border(0.5f).Height(rowHeight, Unit.Millimetre);
+                }
             }
         });
     }
